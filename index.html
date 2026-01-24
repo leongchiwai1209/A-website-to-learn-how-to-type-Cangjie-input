@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cangjie Zen | 倉頡入力法学習</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              zen: {
+                charcoal: '#2c2c2c',
+                offwhite: '#f9f7f2',
+                jade: '#2d6a4f',
+                lightJade: '#d8e2dc',
+                sand: '#e8e4dc'
+              }
+            },
+            fontFamily: {
+              serif: ['"Noto Serif JP"', 'serif'],
+              sans: ['"Noto Sans JP"', 'sans-serif'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.6s ease-out',
+              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+              'glow': 'glow 0.8s ease-in-out',
+            },
+            keyframes: {
+              fadeIn: {
+                'from': { opacity: '0', transform: 'translateY(15px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' }
+              },
+              shake: {
+                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+              },
+              glow: {
+                '0%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 0px #2d6a4f)' },
+                '50%': { transform: 'scale(1.1)', filter: 'drop-shadow(0 0 20px #2d6a4f)' },
+                '100%': { transform: 'scale(1)', filter: 'drop-shadow(0 0 0px #2d6a4f)' }
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+</head>
+  <body class="bg-[#f9f7f2] text-[#2c2c2c] antialiased min-h-screen selection:bg-[#d8e2dc] selection:text-[#2d6a4f]">
+    <div id="root"></div>
+  </body>
+</html>

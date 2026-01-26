@@ -65,6 +65,13 @@ const PracticeCard: React.FC<PracticeCardProps> = ({ t, triggerKey, onNext }) =>
       return;
     }
 
+    // Clear input on Space key
+    if (triggerKey === 'SPACE') {
+      setCurrentInput('');
+      setAnimationClass(''); // Reset any error animation
+      return;
+    }
+
     // Only process A-Z letters
     if (!/^[A-Z]$/.test(triggerKey)) return;
 
@@ -156,7 +163,10 @@ const PracticeCard: React.FC<PracticeCardProps> = ({ t, triggerKey, onNext }) =>
            })}
         </div>
 
-        <p className="text-gray-400 text-sm mt-4">{t.practice_instruction}</p>
+        <p className="text-gray-400 text-sm mt-4">
+            {t.practice_instruction}
+            <span className="block text-xs mt-1 opacity-70">(Space: Clear / Backspace: Undo)</span>
+        </p>
       </div>
 
       <div className="flex justify-between items-center">

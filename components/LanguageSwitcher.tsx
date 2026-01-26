@@ -16,6 +16,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ currentLang, onChan
     { code: 'zh-hans', label: '中国語（簡体）', flag: '🇨🇳' },
     { code: 'zh-hant', label: '中国語（繁体）', flag: '🇹🇼' },
     { code: 'zh-hk', label: '広東語', flag: '🇭🇰' },
+    { code: 'en', label: 'English', flag: '🇺🇸' },
   ];
 
   return (

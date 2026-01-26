@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import LookupTool from './components/LookupTool';
 import PracticeCard from './components/PracticeCard';
@@ -17,11 +17,13 @@ const App: React.FC = () => {
   
   // Data loading
   const [dictionary, setDictionary] = useState<Record<string, string>>({});
+  const [extendedDictionary, setExtendedDictionary] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isExtendedLoading, setIsExtendedLoading] = useState(false);
 
   const t = TRANSLATIONS[currentLang];
 
-  // Fetch dictionary on mount
+  // Fetch core dictionary on mount
   useEffect(() => {
     fetch('cangjie-dictionary.json')
       .then((res) => res.json())
@@ -34,6 +36,22 @@ const App: React.FC = () => {
         setIsLoading(false);
       });
   }, []);
+
+  // Lazy load extended dictionary
+  const loadExtendedDictionary = useCallback(async () => {
+    if (Object.keys(extendedDictionary).length > 0) return; // Already loaded
+
+    setIsExtendedLoading(true);
+    try {
+      const res = await fetch('cangjie-dictionary-extended.json');
+      const data = await res.json();
+      setExtendedDictionary(data);
+    } catch (err) {
+      console.error("Failed to load extended dictionary:", err);
+    } finally {
+      setIsExtendedLoading(false);
+    }
+  }, [extendedDictionary]);
 
   // Global key listener to drive state
   useEffect(() => {
@@ -80,14 +98,11 @@ const App: React.FC = () => {
     }
   }, [activeKey, currentTab]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-zen-offwhite flex flex-col items-center justify-center text-zen-jade animate-pulse">
-        <div className="w-12 h-12 border-4 border-zen-jade border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="font-serif text-lg tracking-widest">LOADING ZEN...</p>
-      </div>
-    );
-  }
+  const getDescription = (info: CangjieChar) => {
+    if (currentLang === 'ja') return info.desc_ja;
+    if (currentLang === 'en') return info.desc_en;
+    return info.desc_zh;
+  };
 
   return (
     <div className="flex flex-col min-h-screen font-sans bg-zen-offwhite text-zen-charcoal">
@@ -96,7 +111,16 @@ const App: React.FC = () => {
       <main className="flex-grow w-full max-w-6xl mx-auto p-4 md:p-8">
         
         {/* Tab: Home */}
-        {currentTab === 'home' && <LookupTool t={t} dictionary={dictionary} />}
+        {currentTab === 'home' && (
+          <LookupTool 
+            t={t} 
+            dictionary={dictionary} 
+            extendedDictionary={extendedDictionary}
+            isLoading={isLoading} 
+            isExtendedLoading={isExtendedLoading}
+            onEnableExtended={loadExtendedDictionary}
+          />
+        )}
 
         {/* Tab: Learn */}
         {currentTab === 'learn' && (
@@ -124,7 +148,7 @@ const App: React.FC = () => {
                             </div>
                          </div>
                          <p className="text-gray-600 text-lg leading-relaxed border-t pt-4 mt-4">
-                             {currentLang === 'ja' ? selectedCharInfo.desc_ja : selectedCharInfo.desc_zh}
+                             {getDescription(selectedCharInfo)}
                          </p>
                     </div>
                 ) : (

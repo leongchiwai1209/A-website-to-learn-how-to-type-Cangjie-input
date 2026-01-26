@@ -1,4 +1,4 @@
-export type LangCode = 'ja' | 'zh-hans' | 'zh-hant' | 'zh-hk';
+export type LangCode = 'ja' | 'zh-hans' | 'zh-hant' | 'zh-hk' | 'en';
 
 export interface CangjieChar {
   key: string;
@@ -7,6 +7,7 @@ export interface CangjieChar {
   aux: string[];
   desc_ja: string;
   desc_zh: string;
+  desc_en: string;
 }
 
 export interface PracticeItem {
@@ -51,6 +52,10 @@ export interface Translations {
   lookup_code: string;
   cats: Record<string, string>;
   rules_list: RuleItem[];
+  // New keys for extended dictionary
+  extended_mode_label: string;
+  extended_mode_desc: string;
+  loading_extended: string;
 }
 
 export type TabId = 'home' | 'learn' | 'practice' | 'table' | 'rules';

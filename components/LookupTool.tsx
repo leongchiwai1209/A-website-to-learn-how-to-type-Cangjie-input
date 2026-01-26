@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { CANGJIE_DATA, DICTIONARY } from '../constants';
+import { CANGJIE_DATA } from '../constants';
 import { Translations } from '../types';
 
 interface LookupToolProps {
   t: Translations;
+  dictionary: Record<string, string>;
 }
 
-const LookupTool: React.FC<LookupToolProps> = ({ t }) => {
+const LookupTool: React.FC<LookupToolProps> = ({ t, dictionary }) => {
   const [input, setInput] = useState('');
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,7 +17,7 @@ const LookupTool: React.FC<LookupToolProps> = ({ t }) => {
     }
   };
 
-  const code = input ? DICTIONARY[input] : null;
+  const code = input ? dictionary[input] : null;
 
   return (
     <div className="max-w-2xl mx-auto text-center animate-fade-in">

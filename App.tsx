@@ -13,8 +13,26 @@ const App: React.FC = () => {
   const [currentLang, setCurrentLang] = useState<LangCode>('ja');
   const [activeKey, setActiveKey] = useState<string | null>(null); // For global keyboard listener visualization
   const [selectedCharInfo, setSelectedCharInfo] = useState<CangjieChar | null>(null);
+  
+  // Data loading
+  const [dictionary, setDictionary] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const t = TRANSLATIONS[currentLang];
+
+  // Fetch dictionary on mount
+  useEffect(() => {
+    fetch('cangjie-dictionary.json')
+      .then((res) => res.json())
+      .then((data) => {
+        setDictionary(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load dictionary:", err);
+        setIsLoading(false);
+      });
+  }, []);
 
   // Global key listener to drive state
   useEffect(() => {
@@ -61,6 +79,14 @@ const App: React.FC = () => {
     }
   }, [activeKey, currentTab]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-zen-offwhite flex flex-col items-center justify-center text-zen-jade animate-pulse">
+        <div className="w-12 h-12 border-4 border-zen-jade border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="font-serif text-lg tracking-widest">LOADING ZEN...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen font-sans bg-zen-offwhite text-zen-charcoal">
@@ -69,7 +95,7 @@ const App: React.FC = () => {
       <main className="flex-grow w-full max-w-6xl mx-auto p-4 md:p-8">
         
         {/* Tab: Home */}
-        {currentTab === 'home' && <LookupTool t={t} />}
+        {currentTab === 'home' && <LookupTool t={t} dictionary={dictionary} />}
 
         {/* Tab: Learn */}
         {currentTab === 'learn' && (

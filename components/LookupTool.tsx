@@ -30,7 +30,7 @@ const LookupTool: React.FC<LookupToolProps> = ({ t, dictionary }) => {
           value={input}
           onChange={handleInput}
           maxLength={1}
-          className="w-24 h-24 text-5xl text-center border-2 border-gray-200 rounded-xl mb-6 font-serif focus:outline-none focus:border-zen-jade transition-colors"
+          className="w-24 h-24 text-5xl text-center border-2 border-gray-200 rounded-xl mb-6 font-serif focus:outline-none focus:border-zen-jade transition-colors bg-zen-charcoal text-white placeholder-gray-500"
           placeholder="漢"
         />
 

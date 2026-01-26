@@ -1,5 +1,6 @@
 import { CangjieChar, PracticeItem, Translations, LangCode } from './types';
 
+// Keeping the interface but removing the hardcoded dictionary to be fetched via JSON
 export const CANGJIE_DATA: CangjieChar[] = [
   { key: 'A', char: '日', cat: '哲理', aux: ['日', '曰'], desc_ja: '太陽、丸い形、または横に分割された形。日の形を基本とする。', desc_zh: '太阳、圆形或横向分割的形状。' },
   { key: 'B', char: '月', cat: '哲理', aux: ['月', '冂', '冖', '冉'], desc_ja: '月、肉体、または「冂」のような囲いに関連する形。', desc_zh: '月亮、肉体或「冂」形的框架。' },
@@ -34,7 +35,6 @@ export const KEYBOARD_LAYOUT = [
   ["Z", "X", "C", "V", "B", "N", "M"]
 ];
 
-// A curated list for practice, sorted roughly by complexity or category
 export const PRACTICE_LIST: PracticeItem[] = [
   // Level 1: Single Code (Basic Roots)
   { word: '日', code: 'A' },
@@ -72,7 +72,7 @@ export const PRACTICE_LIST: PracticeItem[] = [
   { word: '音', code: 'YTA' },
   { word: '想', code: 'DUP' },
   { word: '意', code: 'YTJP' },
-  { word: '門', code: 'AN' }, // Wait, 門 is AN (2)
+  { word: '門', code: 'AN' }, 
   { word: '問', code: 'ANR' },
   { word: '間', code: 'ANA' },
   { word: '聞', code: 'ANS' },
@@ -100,42 +100,114 @@ export const PRACTICE_LIST: PracticeItem[] = [
 export const TRANSLATIONS: Record<LangCode, Translations> = {
   ja: {
     flag: "🇯🇵",
-    nav_home: "ホーム", nav_learn: "字母学習", nav_practice: "練習", nav_table: "一覧",
+    nav_home: "ホーム", nav_learn: "字母学習", nav_practice: "練習", nav_table: "一覧", nav_rules: "入力規則",
     home_title: "倉頡コード検索", home_desc: "知りたい漢字を入力すると、倉頡入力法での解体コードを表示します。", home_placeholder: "漢字を1文字入力してください",
     learn_title: "倉頡字母学習", learn_desc: "キーボードのキーを押して、字母と補助字形を確認しましょう。", learn_aux_title: "補助字形",
     practice_title: "解体トレーニング", practice_hint_prefix: "ヒント：", practice_instruction: "物理キーボードで倉頡字母を入力してください",
-    btn_skip: "スキップ", table_title: "倉頡五大分類", footer_ref: "倉頡輸入法リファレンス準拠。",
+    btn_skip: "スキップ", table_title: "倉頡五大分類", rules_title: "入力規則と原則", rules_desc: "倉頡入力法における文字の分解ルールとコード取得の基本原則。",
+    footer_ref: "倉頡輸入法リファレンス準拠。",
     lookup_error: "データがありません", lookup_code: "倉頡コード: ",
-    cats: { "哲理": "哲理", "筆画": "筆画", "人体": "人体", "字形": "字形", "特殊": "特殊" }
+    cats: { "哲理": "哲理", "筆画": "筆画", "人体": "人体", "字形": "字形", "特殊": "特殊" },
+    rules_list: [
+        {
+            title: "基本原則：取碼方向",
+            desc: "文字は基本的に「上から下へ」「左から右へ」「外から内へ」の順序でコードを取ります。",
+            examples: [{char: "吉", code: "GR", note: "土(G) → 口(R) (上から下)"}, {char: "明", code: "AB", note: "日(A) → 月(B) (左から右)"}, {char: "国", code: "WIRM", note: "囗(W) → 玉(IRM) (外から内)"}]
+        },
+        {
+            title: "連体字（ひとつの塊）",
+            desc: "部品に分かれない文字は、最大4コードまで取ります。4コードを超える場合は「最初、2番目、3番目、最後」のコードを取ります。",
+            examples: [{char: "鳥", code: "HAF", note: "全コード"}, {char: "雨", code: "MLBY", note: "全コード"}]
+        },
+        {
+            title: "分体字（左右や上下に分かれる）",
+            desc: "文字が「体（Body）」と「用（Remainder）」に分かれる場合、最大5コードを取ります。通常は「体」から最初と最後、「用」から最初・2番目・最後を取ります。",
+            examples: [{char: "時", code: "AGDI", note: "日(A) + 寺(GDI)"}, {char: "話", code: "YRHJR", note: "言(YR) + 舌(HJR)"}]
+        }
+    ]
   },
   'zh-hans': {
     flag: "🇨🇳",
-    nav_home: "首页", nav_learn: "字母学习", nav_practice: "练习", nav_table: "列表",
+    nav_home: "首页", nav_learn: "字母学习", nav_practice: "练习", nav_table: "列表", nav_rules: "输入规则",
     home_title: "仓颉代码查询", home_desc: "输入您想了解的汉字，即可显示其仓颉输入法的拆解代码。", home_placeholder: "请输入一个汉字",
     learn_title: "仓颉字母学习", learn_desc: "按下键盘上的按键，查看字母及其辅助字形。", learn_aux_title: "辅助字形",
     practice_title: "拆解练习", practice_hint_prefix: "提示：", practice_instruction: "请使用物理键盘输入仓颉字母",
-    btn_skip: "跳过", table_title: "仓颉五大分类", footer_ref: "参考 仓颉输入法 维基百科。",
+    btn_skip: "跳过", table_title: "仓颉五大分类", rules_title: "取码规则与原则", rules_desc: "了解仓颉输入法的基本拆字规则和取码顺序。",
+    footer_ref: "参考 仓颉输入法 维基百科。",
     lookup_error: "未找到数据", lookup_code: "仓颉码: ",
-    cats: { "哲理": "哲理", "筆画": "笔画", "人体": "人体", "字形": "字形", "特殊": "特殊" }
+    cats: { "哲理": "哲理", "筆画": "笔画", "人体": "人体", "字形": "字形", "特殊": "特殊" },
+    rules_list: [
+        {
+            title: "基本原则：取码方向",
+            desc: "取码顺原则为「由上而下」、「由左而右」、「由外而内」。",
+            examples: [{char: "吉", code: "GR", note: "由上而下"}, {char: "明", code: "AB", note: "由左而右"}, {char: "国", code: "WIRM", note: "由外而内"}]
+        },
+        {
+            title: "连体字",
+            desc: "凡字之字形不能拆分者为连体字。取码上限为4码。若超过4码，取首、二、三、尾码。",
+            examples: [{char: "鳥", code: "HAF", note: "全码"}, {char: "雨", code: "MLBY", note: "全码"}]
+        },
+        {
+            title: "分体字",
+            desc: "凡字身可拆分为两部分（字首、字身）者。取码上限为5码。通常取字首之首尾，字身之首二尾。",
+            examples: [{char: "時", code: "AGDI", note: "日(A) + 寺(GDI)"}, {char: "話", code: "YRHJR", note: "言(YR) + 舌(HJR)"}]
+        }
+    ]
   },
   'zh-hant': {
     flag: "🇹🇼",
-    nav_home: "首頁", nav_learn: "字母學習", nav_practice: "練習", nav_table: "列表",
+    nav_home: "首頁", nav_learn: "字母學習", nav_practice: "練習", nav_table: "列表", nav_rules: "輸入規則",
     home_title: "倉頡代碼查詢", home_desc: "輸入您想了解的漢字，即可顯示其倉頡輸入法的拆解代碼。", home_placeholder: "請輸入一個漢字",
     learn_title: "倉頡字母學習", learn_desc: "按下鍵盤上的按鍵，查看字母及其補助字形。", learn_aux_title: "補助字形",
     practice_title: "拆解練習", practice_hint_prefix: "提示：", practice_instruction: "請使用物理鍵盤輸入倉頡字母",
-    btn_skip: "跳過", table_title: "倉頡五大分類", footer_ref: "參考 倉頡輸入法 維基百科。",
+    btn_skip: "跳過", table_title: "倉頡五大分類", rules_title: "取碼規則與原則", rules_desc: "了解倉頡輸入法的基本拆字規則和取碼順序。",
+    footer_ref: "參考 倉頡輸入法 維基百科。",
     lookup_error: "未找到數據", lookup_code: "倉頡碼: ",
-    cats: { "哲理": "哲理", "筆画": "筆畫", "人体": "人體", "字形": "字形", "特殊": "特殊" }
+    cats: { "哲理": "哲理", "筆画": "筆畫", "人体": "人體", "字形": "字形", "特殊": "特殊" },
+    rules_list: [
+        {
+            title: "基本原則：取碼方向",
+            desc: "取碼順原則為「由上而下」、「由左而右」、「由外而內」。",
+            examples: [{char: "吉", code: "GR", note: "由上而下"}, {char: "明", code: "AB", note: "由左而右"}, {char: "国", code: "WIRM", note: "由外而內"}]
+        },
+        {
+            title: "連體字",
+            desc: "凡字之字形不能拆分者為連體字。取碼上限為4碼。若超過4碼，取首、二、三、尾碼。",
+            examples: [{char: "鳥", code: "HAF", note: "全碼"}, {char: "雨", code: "MLBY", note: "全碼"}]
+        },
+        {
+            title: "分體字",
+            desc: "凡字身可拆分為兩部分（字首、字身）者。取碼上限為5碼。通常取字首之首尾，字身之首二尾。",
+            examples: [{char: "時", code: "AGDI", note: "日(A) + 寺(GDI)"}, {char: "話", code: "YRHJR", note: "言(YR) + 舌(HJR)"}]
+        }
+    ]
   },
   'zh-hk': {
     flag: "🇭🇰",
-    nav_home: "首頁", nav_learn: "字母學習", nav_practice: "練習", nav_table: "一覽",
+    nav_home: "首頁", nav_learn: "字母學習", nav_practice: "練習", nav_table: "一覽", nav_rules: "輸入規則",
     home_title: "倉頡碼查詢", home_desc: "輸入你想了解嘅漢字，就顯示倉頡輸入法嘅拆碼。", home_placeholder: "請輸入一個漢字",
     learn_title: "倉頡字母學習", learn_desc: "撳下鍵盤按鍵，睇下字母同補助字形。", learn_aux_title: "補助字形",
     practice_title: "拆碼練習", practice_hint_prefix: "提示：", practice_instruction: "請使用鍵盤輸入倉頡字母",
-    btn_skip: "跳過", table_title: "倉頡五大分類", footer_ref: "參考 倉頡輸入法 維基百科。",
+    btn_skip: "跳過", table_title: "倉頡五大分類", rules_title: "取碼規則", rules_desc: "睇下倉頡輸入法點樣拆碼。",
+    footer_ref: "參考 倉頡輸入法 維基百科。",
     lookup_error: "搵唔到數據", lookup_code: "倉頡碼: ",
-    cats: { "哲理": "哲理", "筆画": "筆畫", "人体": "人體", "字形": "字形", "特殊": "特殊" }
+    cats: { "哲理": "哲理", "筆画": "筆畫", "人体": "人體", "字形": "字形", "特殊": "特殊" },
+    rules_list: [
+        {
+            title: "基本原則：取碼方向",
+            desc: "取碼方向主要係「由上而下」、「由左而右」、「由外而內」。",
+            examples: [{char: "吉", code: "GR", note: "由上而下"}, {char: "明", code: "AB", note: "由左而右"}, {char: "国", code: "WIRM", note: "由外而內"}]
+        },
+        {
+            title: "連體字",
+            desc: "如果個字拆唔開，就係連體字。最多取4碼。如果多過4碼，取頭、二、三、尾碼。",
+            examples: [{char: "鳥", code: "HAF", note: "全碼"}, {char: "雨", code: "MLBY", note: "全碼"}]
+        },
+        {
+            title: "分體字",
+            desc: "個字分得開（字首、字身）就係分體字。最多取5碼。通常字首取頭尾，字身取頭二尾。",
+            examples: [{char: "時", code: "AGDI", note: "日(A) + 寺(GDI)"}, {char: "話", code: "YRHJR", note: "言(YR) + 舌(HJR)"}]
+        }
+    ]
   }
 };

@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import LookupTool from './components/LookupTool';
 import PracticeCard from './components/PracticeCard';
 import ReferenceTable from './components/ReferenceTable';
+import RulesGuide from './components/RulesGuide';
 import Keyboard from './components/Keyboard';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { TabId, LangCode, CangjieChar } from './types';
@@ -157,6 +158,9 @@ const App: React.FC = () => {
 
         {/* Tab: Table */}
         {currentTab === 'table' && <ReferenceTable t={t} />}
+
+        {/* Tab: Rules (New) */}
+        {currentTab === 'rules' && <RulesGuide t={t} />}
 
       </main>
 

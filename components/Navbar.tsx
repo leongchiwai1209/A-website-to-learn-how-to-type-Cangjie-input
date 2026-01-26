@@ -13,6 +13,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentTab, setTab, t }) => {
     { id: 'learn', label: t.nav_learn },
     { id: 'practice', label: t.nav_practice },
     { id: 'table', label: t.nav_table },
+    { id: 'rules', label: t.nav_rules },
   ];
 
   return (

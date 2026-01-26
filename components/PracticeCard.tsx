@@ -8,8 +8,11 @@ interface PracticeCardProps {
   onNext: () => void;
 }
 
+const getRandomIndex = () => Math.floor(Math.random() * PRACTICE_LIST.length);
+
 const PracticeCard: React.FC<PracticeCardProps> = ({ t, triggerKey, onNext }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Initialize with a random word instead of the first one
+  const [currentIndex, setCurrentIndex] = useState(getRandomIndex);
   const [currentInput, setCurrentInput] = useState('');
   const [score, setScore] = useState(0);
   const [mistakeCount, setMistakeCount] = useState(0);
@@ -22,7 +25,16 @@ const PracticeCard: React.FC<PracticeCardProps> = ({ t, triggerKey, onNext }) =>
   const currentItem = PRACTICE_LIST[currentIndex];
 
   const nextWord = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % PRACTICE_LIST.length);
+    setCurrentIndex((prev) => {
+      let next = getRandomIndex();
+      // Simple logic to avoid showing the same word twice in a row
+      if (PRACTICE_LIST.length > 1) {
+        while (next === prev) {
+          next = getRandomIndex();
+        }
+      }
+      return next;
+    });
     setCurrentInput('');
     setMistakeCount(0);
     setAnimationClass('');

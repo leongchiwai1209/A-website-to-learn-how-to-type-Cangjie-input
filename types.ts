@@ -14,12 +14,25 @@ export interface PracticeItem {
   code: string;
 }
 
+export interface RuleExample {
+  char: string;
+  code: string;
+  note?: string;
+}
+
+export interface RuleItem {
+  title: string;
+  desc: string;
+  examples: RuleExample[];
+}
+
 export interface Translations {
   flag: string;
   nav_home: string;
   nav_learn: string;
   nav_practice: string;
   nav_table: string;
+  nav_rules: string;
   home_title: string;
   home_desc: string;
   home_placeholder: string;
@@ -31,10 +44,13 @@ export interface Translations {
   practice_instruction: string;
   btn_skip: string;
   table_title: string;
+  rules_title: string;
+  rules_desc: string;
   footer_ref: string;
   lookup_error: string;
   lookup_code: string;
   cats: Record<string, string>;
+  rules_list: RuleItem[];
 }
 
-export type TabId = 'home' | 'learn' | 'practice' | 'table';
+export type TabId = 'home' | 'learn' | 'practice' | 'table' | 'rules';

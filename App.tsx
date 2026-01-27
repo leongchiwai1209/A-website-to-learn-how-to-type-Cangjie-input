@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LookupTool from './components/LookupTool';
 import PracticeCard from './components/PracticeCard';
@@ -8,52 +8,34 @@ import Keyboard from './components/Keyboard';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { TabId, LangCode, CangjieChar } from './types';
 import { TRANSLATIONS, CANGJIE_DATA } from './constants';
+import { initDB } from './utils/db'; // Import DB utility
 
 const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabId>('home');
   const [currentLang, setCurrentLang] = useState<LangCode>('ja');
-  const [activeKey, setActiveKey] = useState<string | null>(null); // For global keyboard listener visualization
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const [selectedCharInfo, setSelectedCharInfo] = useState<CangjieChar | null>(null);
   
-  // Data loading
-  const [dictionary, setDictionary] = useState<Record<string, string>>({});
-  const [extendedDictionary, setExtendedDictionary] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isExtendedLoading, setIsExtendedLoading] = useState(false);
+  // DB State
+  const [isDbReady, setIsDbReady] = useState(false);
+  const [dbError, setDbError] = useState(false);
 
   const t = TRANSLATIONS[currentLang];
 
-  // Fetch core dictionary on mount
+  // Initialize SQLite Database on mount
   useEffect(() => {
-    fetch('cangjie-dictionary.json')
-      .then((res) => res.json())
-      .then((data) => {
-        setDictionary(data);
-        setIsLoading(false);
+    // We load the single unified database file
+    initDB('cangjie.db')
+      .then(() => {
+        setIsDbReady(true);
       })
       .catch((err) => {
-        console.error("Failed to load dictionary:", err);
-        setIsLoading(false);
+        console.error("DB Init Error:", err);
+        setDbError(true);
       });
   }, []);
 
-  // Lazy load extended dictionary
-  const loadExtendedDictionary = useCallback(async () => {
-    if (Object.keys(extendedDictionary).length > 0) return; // Already loaded
-
-    setIsExtendedLoading(true);
-    try {
-      const res = await fetch('cangjie-dictionary-extended.json');
-      const data = await res.json();
-      setExtendedDictionary(data);
-    } catch (err) {
-      console.error("Failed to load extended dictionary:", err);
-    } finally {
-      setIsExtendedLoading(false);
-    }
-  }, [extendedDictionary]);
-
-  // Global key listener to drive state
+  // Global key listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toUpperCase();
@@ -61,13 +43,12 @@ const App: React.FC = () => {
         setActiveKey('BACKSPACE');
       } else if (e.code === 'Space' || key === ' ') {
         setActiveKey('SPACE');
-        e.preventDefault(); // Prevent scrolling when pressing space
+        e.preventDefault();
       } else if (/^[A-Z]$/.test(key)) {
         setActiveKey(key);
       }
     };
     
-    // Clear active key
     const handleKeyUp = () => {
        setActiveKey(null);
     };
@@ -82,11 +63,9 @@ const App: React.FC = () => {
 
   const handleKeyboardClick = (key: string) => {
     setActiveKey(key);
-    // Mimic a quick press for mouse clicks
     setTimeout(() => setActiveKey(null), 150);
   };
 
-  // Logic for "Learn" tab detail view
   useEffect(() => {
     if (currentTab === 'learn') {
        if (activeKey === 'SPACE') {
@@ -114,11 +93,8 @@ const App: React.FC = () => {
         {currentTab === 'home' && (
           <LookupTool 
             t={t} 
-            dictionary={dictionary} 
-            extendedDictionary={extendedDictionary}
-            isLoading={isLoading} 
-            isExtendedLoading={isExtendedLoading}
-            onEnableExtended={loadExtendedDictionary}
+            isDbReady={isDbReady}
+            dbError={dbError}
           />
         )}
 
@@ -174,7 +150,6 @@ const App: React.FC = () => {
                  onNext={() => setActiveKey(null)}
                />
                <div className="opacity-50 hover:opacity-100 transition-opacity flex justify-center scale-90">
-                 {/* Visual only keyboard for reference during practice */}
                  <Keyboard onKeyPress={handleKeyboardClick} highlightKey={activeKey} />
                </div>
            </div>
@@ -183,7 +158,7 @@ const App: React.FC = () => {
         {/* Tab: Table */}
         {currentTab === 'table' && <ReferenceTable t={t} />}
 
-        {/* Tab: Rules (New) */}
+        {/* Tab: Rules */}
         {currentTab === 'rules' && <RulesGuide t={t} />}
 
       </main>

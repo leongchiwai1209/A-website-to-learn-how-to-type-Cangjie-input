@@ -3,60 +3,42 @@ import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
 let dbInstance: Database | null = null;
 let sqlInstance: SqlJsStatic | null = null;
 
+// The user-provided GAS Web App URL
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzTX1skXaR4ik_ujtzC5oZ8j05hujF9otQzwcDXQxzmOCbkEgeGn8_ce8EUCD43Oqhr/exec";
+
 export interface DBResult {
   code: string;
   isExtended: boolean;
 }
 
 /**
- * Initialize the SQLite engine.
- * 1. Tries to load 'cangjie.db' (pre-compiled).
- * 2. If missing, falls back to fetching JSONs and building DB in memory.
+ * Initialize the SQLite engine (Lightweight Core Only).
+ * 
+ * We no longer load the huge CSV background task.
+ * Instead, we will hit the GAS API for extended queries.
  */
-export const initDB = async (dbUrl: string): Promise<void> => {
+export const initDB = async (coreUrl: string): Promise<void> => {
   if (dbInstance) return;
 
   try {
-    // 1. Load WASM manually
-    // This explicitly fetches the WASM binary via HTTP, bypassing sql.js's internal
-    // environment detection which mistakenly tries to use 'fs' (Node.js file system)
-    // in StackBlitz/WebContainers.
+    // 1. Load WASM
     const wasmUrl = 'https://esm.sh/sql.js@1.13.0/dist/sql-wasm.wasm';
-    console.log(`Loading SQL.js WASM from ${wasmUrl}...`);
     
     const wasmRes = await fetch(wasmUrl);
-    if (!wasmRes.ok) {
-        throw new Error(`Failed to load WASM: ${wasmRes.statusText}`);
-    }
+    if (!wasmRes.ok) throw new Error(`Failed to load WASM`);
     const wasmBinary = await wasmRes.arrayBuffer();
 
-    // Initialize with the manually fetched binary
-    sqlInstance = await initSqlJs({
-      wasmBinary
-    });
+    sqlInstance = await initSqlJs({ wasmBinary });
+    const db = new sqlInstance.Database();
 
-    // 2. Try to fetch the pre-built database file (Optional optimization)
-    console.log(`Attempting to load DB from ${dbUrl}...`);
-    let loadedFromFile = false;
-    try {
-      const response = await fetch(dbUrl);
-      if (response.ok) {
-        const buffer = await response.arrayBuffer();
-        dbInstance = new sqlInstance.Database(new Uint8Array(buffer));
-        console.log("SQLite Database loaded from file successfully.");
-        loadedFromFile = true;
-      }
-    } catch (e) {
-      console.warn("Could not load .db file, will fall back to in-memory generation.", e);
-    }
+    // Create Tables
+    db.run("CREATE TABLE dictionary (char TEXT PRIMARY KEY, code TEXT, is_extended INTEGER);");
+    db.run("CREATE INDEX idx_char ON dictionary (char);");
+    
+    dbInstance = db;
 
-    if (loadedFromFile) return;
-
-    // 3. Fallback: Generate DB in-memory from JSON files
-    // This allows the app to work immediately without running the local Node.js script.
-    console.log("Generating Database in-memory from JSONs...");
-    await createDbFromJsons(sqlInstance);
-    console.log("In-memory Database generated successfully.");
+    // 2. Load Core Dictionary (Fast)
+    await loadCoreDictionary(db, coreUrl);
 
   } catch (err) {
     console.error("Failed to initialize SQLite:", err);
@@ -65,64 +47,36 @@ export const initDB = async (dbUrl: string): Promise<void> => {
 };
 
 /**
- * Helper to build the database on the fly in the browser
+ * Load the small core JSON dictionary.
  */
-async function createDbFromJsons(SQL: SqlJsStatic) {
-  const db = new SQL.Database();
-  
-  // Create Table
-  db.run("CREATE TABLE dictionary (char TEXT PRIMARY KEY, code TEXT, is_extended INTEGER);");
-  db.run("CREATE INDEX idx_char ON dictionary (char);");
-
-  const stmt = db.prepare("INSERT OR IGNORE INTO dictionary VALUES (?, ?, ?)");
-
-  // Load Core Dictionary
+async function loadCoreDictionary(db: Database, url: string) {
   try {
-    const coreRes = await fetch('cangjie-dictionary.json');
-    if (coreRes.ok) {
-      const coreData = await coreRes.json() as Record<string, string>;
-      db.exec("BEGIN TRANSACTION");
-      for (const [char, code] of Object.entries(coreData)) {
-         stmt.run([char, code, 0]);
-      }
-      db.exec("COMMIT");
-    } else {
-        console.error("Could not fetch core dictionary JSON");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Core dict fetch failed");
+    
+    const data = await res.json() as Record<string, string>;
+    const stmt = db.prepare("INSERT OR IGNORE INTO dictionary VALUES (?, ?, 0)");
+    
+    db.exec("BEGIN TRANSACTION");
+    for (const [char, code] of Object.entries(data)) {
+         stmt.run([char, code]);
     }
-  } catch(e) { console.error("Error loading core dictionary:", e); }
-
-  // Load Extended Dictionary
-  try {
-    const extRes = await fetch('cangjie-dictionary-extended.json');
-    if (extRes.ok) {
-      const extData = await extRes.json() as Record<string, string>;
-      db.exec("BEGIN TRANSACTION");
-      for (const [char, code] of Object.entries(extData)) {
-         stmt.run([char, code, 1]);
-      }
-      db.exec("COMMIT");
-    }
-  } catch(e) { 
-      // Extended dictionary might not exist, which is fine
-      console.log("Extended dictionary not found or skipped.");
+    db.exec("COMMIT");
+    stmt.free();
+  } catch (e) {
+    console.error("Error loading core dictionary:", e);
   }
-
-  stmt.free();
-  dbInstance = db;
 }
 
 /**
- * Query a character from the database.
+ * Query a character from Local Core DB.
+ * Returns null if not found.
  */
-export const lookupChar = (char: string, allowExtended: boolean): string | null => {
+export const lookupLocalChar = (char: string): string | null => {
   if (!dbInstance) return null;
-
-  const query = allowExtended 
-    ? "SELECT code FROM dictionary WHERE char = $char" 
-    : "SELECT code FROM dictionary WHERE char = $char AND is_extended = 0";
-
+  
   try {
-      const stmt = dbInstance.prepare(query);
+      const stmt = dbInstance.prepare("SELECT code FROM dictionary WHERE char = $char");
       const result = stmt.getAsObject({ $char: char });
       stmt.free();
 
@@ -133,6 +87,33 @@ export const lookupChar = (char: string, allowExtended: boolean): string | null 
       console.warn("Query error:", e);
   }
   return null;
+};
+
+/**
+ * Query a character from Google Apps Script API.
+ * This solves the "heavy download" issue by fetching on demand.
+ */
+export const searchRemote = async (char: string): Promise<string | null> => {
+  try {
+    // Assuming the GAS script accepts ?char=X and returns JSON
+    const url = `${GAS_API_URL}?char=${encodeURIComponent(char)}`;
+    const res = await fetch(url);
+    
+    if (!res.ok) return null;
+    
+    const data = await res.json();
+    // Support various return formats: { code: "ABC" } or just "ABC" or { result: ... }
+    if (data && typeof data.code === 'string') {
+        return data.code;
+    }
+    // If user script returns just the object from Sheet like { char: "...", code: "..." }
+    if (data && data.code) return data.code;
+    
+    return null;
+  } catch (e) {
+    console.warn("Remote search failed:", e);
+    return null;
+  }
 };
 
 export const isDBReady = () => !!dbInstance;

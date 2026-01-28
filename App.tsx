@@ -8,7 +8,7 @@ import Keyboard from './components/Keyboard';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { TabId, LangCode, CangjieChar } from './types';
 import { TRANSLATIONS, CANGJIE_DATA } from './constants';
-import { initDB } from './utils/db'; // Import DB utility
+import { initDB } from './utils/db'; 
 
 const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabId>('home');
@@ -22,10 +22,12 @@ const App: React.FC = () => {
 
   const t = TRANSLATIONS[currentLang];
 
-  // Initialize SQLite Database on mount
+  // Initialize SQLite Database (Core only)
   useEffect(() => {
-    // We load the single unified database file
-    initDB('cangjie.db')
+    const coreUrl = 'cangjie-dictionary.json';
+    
+    // We no longer pass extendedUrl. We use GAS API for extended search.
+    initDB(coreUrl)
       .then(() => {
         setIsDbReady(true);
       })

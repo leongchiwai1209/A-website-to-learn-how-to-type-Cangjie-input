@@ -6,6 +6,7 @@ import ReferenceTable from './components/ReferenceTable';
 import RulesGuide from './components/RulesGuide';
 import Keyboard from './components/Keyboard';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import GitHubLink from './components/GitHubLink'; // Import new component
 import { TabId, LangCode, CangjieChar } from './types';
 import { TRANSLATIONS, CANGJIE_DATA } from './constants';
 import { initDB } from './utils/db'; 
@@ -166,6 +167,7 @@ const App: React.FC = () => {
       </main>
 
       <LanguageSwitcher currentLang={currentLang} onChange={setCurrentLang} />
+      <GitHubLink />
 
       <footer className="p-8 text-center text-xs text-gray-400 tracking-widest uppercase">
         &copy; 2024 Cangjie Zen — Wikipedia {t.footer_ref}

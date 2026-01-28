@@ -1,10 +1,8 @@
 import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
+import { CONFIG } from '../config'; // Import from config
 
 let dbInstance: Database | null = null;
 let sqlInstance: SqlJsStatic | null = null;
-
-// The user-provided GAS Web App URL
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzTX1skXaR4ik_ujtzC5oZ8j05hujF9otQzwcDXQxzmOCbkEgeGn8_ce8EUCD43Oqhr/exec";
 
 export interface DBResult {
   code: string;
@@ -95,8 +93,14 @@ export const lookupLocalChar = (char: string): string | null => {
  */
 export const searchRemote = async (char: string): Promise<string | null> => {
   try {
-    // Assuming the GAS script accepts ?char=X and returns JSON
-    const url = `${GAS_API_URL}?char=${encodeURIComponent(char)}`;
+    // Use the URL from the secure config file
+    const baseUrl = CONFIG.GAS_API_URL;
+    if (!baseUrl) {
+        console.warn("GAS API URL is missing in config.ts");
+        return null;
+    }
+
+    const url = `${baseUrl}?char=${encodeURIComponent(char)}`;
     const res = await fetch(url);
     
     if (!res.ok) return null;
